@@ -5,7 +5,7 @@ from tensorflow.keras.regularizers import l2
 CONV_ARGS = {
     "padding": "same",
     "activation": "swish",
-    "kernel_regularizer": l2(1e-4)
+    "kernel_regularizer": l2(0.01)
 }
 
 
@@ -36,11 +36,11 @@ def base_res_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model:
 
     x = layers.Conv2D(32, 3, **CONV_ARGS)(x)
     x = layers.BatchNormalization()(x)
-    x = layers.Dropout(0.1)(x)
+    x = layers.Dropout(0.2)(x)
 
     previous_block_activation = x
 
-    for size in [64, 64, 64]:
+    for size in [16, 32, 64]:
         x = layers.SeparableConv2D(size, 3, **CONV_ARGS)(x)
         x = layers.BatchNormalization()(x)
 
@@ -54,7 +54,7 @@ def base_res_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model:
             previous_block_activation)
         x = layers.add([x, residual])
 
-        x = layers.Dropout(0.1)(x)
+        x = layers.Dropout(0.2)(x)
         previous_block_activation = x
 
     x = layers.SeparableConv2D(128, 3, **CONV_ARGS)(x)
