@@ -18,7 +18,8 @@ def base_res_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model:
     :return: The model.
     """
 
-    inputs = keras.Input(shape=(input_shape[1], input_shape[0], input_shape[2]))
+    # get 2D image tensors
+    inputs = keras.Input(shape=input_shape)
 
     data_augmentation = keras.Sequential(
         [
@@ -39,7 +40,7 @@ def base_res_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model:
 
     previous_block_activation = x
 
-    for size in [64]:
+    for size in [64, 64, 64]:
         x = layers.SeparableConv2D(size, 3, **CONV_ARGS)(x)
         x = layers.BatchNormalization()(x)
 
@@ -61,6 +62,5 @@ def base_res_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model:
 
     x = layers.MaxPooling2D(3, strides=2, padding="same")(x)
     x = layers.Flatten()(x)
-
     outputs = layers.Dense(num_classes, activation="softmax")(x)
     return keras.Model(inputs, outputs)
