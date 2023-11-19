@@ -5,11 +5,11 @@ from tensorflow.keras.regularizers import l2
 CONV_ARGS = {
     "padding": "same",
     "activation": "relu",
-    "kernel_regularizer": l2(0.01)
+    "kernel_regularizer": l2(0.04)
 }
 
 
-def base_res_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model:
+def small_res_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model:
     """
     Get a ResNet inspired CNN network.
 
@@ -41,7 +41,7 @@ def base_res_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model:
 
     previous_block_activation = x
 
-    for size in [64, 128]:
+    for size in [16]:
         x = layers.SeparableConv2D(size, 3, **CONV_ARGS)(x)
         x = layers.BatchNormalization()(x)
 

@@ -1,6 +1,8 @@
 import os
 import shutil
+from glob import glob
 import pandas as pd
+from tqdm import tqdm
 
 RESIZED_PATH = "data\\resized"
 
@@ -25,10 +27,26 @@ def _move_file(row, path: str):
 
 def train_to_implicit(train_path: str, df: pd.DataFrame) -> None:
     labels = df["label"].unique()
-    for label in labels:
+    for label in tqdm(labels):
         try:
             os.mkdir(os.path.join(train_path, str(label)))
         except:
             pass
 
     df.apply(lambda row: _move_file(row, train_path), axis=1)
+
+
+def implicit_to_species_aggregate(train_path: str, species_dict: dict[str, list[int]]) -> None:
+    new_path = os.path.join(*train_path.split("/")[:-1])
+    for species, labels in tqdm(species_dict.items()):
+        target_path = os.path.join(new_path, "species_classify", species)
+        try:
+            os.mkdir(target_path)
+        except:
+            pass
+        for label in labels:
+            curr_path = os.path.join(train_path, str(label))
+            for file in glob(f"{curr_path}/*"):
+                shutil.copy(file, target_path)
+
+
