@@ -32,7 +32,7 @@ def train_classifier(
     callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
     model.compile(
         loss=configuration["loss_function"],
-        optimizer=keras.optimizers.Adam(configuration["learning_rate"], decay=configuration["decay"]),
+        optimizer=keras.optimizers.Adam(configuration["learning_rate"]),
         metrics=configuration["metric"],
     )
 

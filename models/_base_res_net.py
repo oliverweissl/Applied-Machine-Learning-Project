@@ -37,11 +37,10 @@ def base_res_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model:
 
     x = layers.Conv2D(32, 3, **CONV_ARGS)(x)
     x = layers.BatchNormalization()(x)
-    x = layers.Dropout(0.2)(x)
 
     previous_block_activation = x
 
-    for size in [64, 128]:
+    for size in [32, 64]:
         x = layers.SeparableConv2D(size, 3, **CONV_ARGS)(x)
         x = layers.BatchNormalization()(x)
 
@@ -51,7 +50,7 @@ def base_res_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model:
         x = layers.MaxPooling2D(3, strides=2, padding="same")(x)
 
         # Project residual
-        residual = layers.Conv2D(size, 1, strides=2, padding="same", kernel_regularizer=l2(0.04))(
+        residual = layers.Conv2D(size, 1, strides=2, padding="same", kernel_regularizer=l2(0.01))(
             previous_block_activation)
         x = layers.add([x, residual])
 
@@ -63,5 +62,6 @@ def base_res_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model:
 
     x = layers.MaxPooling2D(3, strides=2, padding="same")(x)
     x = layers.Flatten()(x)
+    x = layers.Dropout(0.2)(x)
     outputs = layers.Dense(num_classes, activation="softmax")(x)
     return keras.Model(inputs, outputs)

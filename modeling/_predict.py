@@ -17,8 +17,8 @@ def _adjust_row(row, s_predict: pd.DataFrame,  mapping: dict[int, list[int]]):
 
 
 def predict(
-        species_classifier: str,
-        subspecies_classifier: str,
+        species_classifier: str | None,
+        subspecies_classifier: str | None,
         dataset: tf.data.Dataset,
         species_subspecies_dict: dict,
 ) -> None:
@@ -30,17 +30,23 @@ def predict(
     :param dataset: The dataset for prediction.
     :param species_subspecies_dict: Dict for translating species labels to potential subspecies labels.
     """
-    tqdm.pandas(desc="my bar!")
-    scl = keras.models.load_model(species_classifier)
-    s_predict = pd.DataFrame(scl.predict(dataset))
+    tqdm.pandas(desc="combining results")
 
-    sscl = keras.models.load_model(subspecies_classifier)
-    ss_predict = pd.DataFrame(sscl.predict(dataset))
-    species_subspecies_dict = {k: v for k, v in enumerate(species_subspecies_dict.values())}
+    if species_classifier is not None:
+        scl = keras.models.load_model(species_classifier)
+        s_predict = pd.DataFrame(scl.predict(dataset))
+        final_labels = list(s_predict.idxmax(axis=1))
 
-    ss_predict.progress_apply(lambda row: _adjust_row(row, s_predict, species_subspecies_dict), axis=1)
+    if subspecies_classifier is not None:
+        sscl = keras.models.load_model(subspecies_classifier)
+        ss_predict = pd.DataFrame(sscl.predict(dataset))
+        species_subspecies_dict = {k: v for k, v in enumerate(species_subspecies_dict.values())}
+        final_labels = list(ss_predict.idxmax(axis=1))
 
-    final_labels = list(ss_predict.idxmax(axis=1))
+    if subspecies_classifier is not None and species_classifier is not None:
+        ss_predict.progress_apply(lambda row: _adjust_row(row, s_predict, species_subspecies_dict), axis=1)
+        final_labels = list(ss_predict.idxmax(axis=1))
+
     test_df = pd.read_csv("data/test_images_sample.csv", index_col="id")
     test_df["label"] = final_labels
 

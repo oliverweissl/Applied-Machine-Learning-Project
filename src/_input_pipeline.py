@@ -1,7 +1,6 @@
 import tensorflow as tf
-from typing import Any
-from tensorflow import Tensor
-from sklearn.model_selection import train_test_split
+import pandas as pd
+
 
 class InputPipeline:
     _train_split: float
@@ -16,7 +15,7 @@ class InputPipeline:
     test_dataset: tf.data.Dataset
     validation_dataset: tf.data.Dataset
 
-    def __init__(self, splits: tuple[float, ...], channels: int, size: tuple[int, int], batch_size: int = 1,) -> None:
+    def __init__(self, splits: tuple[float, ...], channels: int, size: tuple[int, int], batch_size: int = 1, ) -> None:
         """
         Init the Input pipeline.
 
@@ -50,6 +49,22 @@ class InputPipeline:
             interpolation='lanczos3',
         )
         print("Datasets populated!")
+
+    def make_stratified_train_dataset(self, train_ds_path: str, val_ds_path: str) -> None:
+        """
+        Make a stratified train and validation dataset -> each class is split train/val seperately.
+
+        :param train_ds_path: The path to the train dataframe.
+        :param val_ds_path: The path to the validation dataframe.
+        """
+        train_df = pd.read_csv(train_ds_path, index_col=False)
+        val_df = pd.read_csv(val_ds_path, index_col=False)
+
+        train_ds = tf.data.Dataset.from_tensor_slices((train_df["image"].values, train_df["label"].values)).map(self._load_and_preprocess_image).batch(batch_size=self._batch_size)
+        val_ds = tf.data.Dataset.from_tensor_slices((val_df["image"].values, val_df["label"].values)).map(self._load_and_preprocess_image).batch(batch_size=self._batch_size)
+
+        self.train_dataset = train_ds
+        self.validation_dataset = val_ds
 
     def make_test_dataset(self, directory: str) -> None:
         """
@@ -88,8 +103,9 @@ class InputPipeline:
         t_batched = self.test_dataset.prefetch(tf.data.AUTOTUNE).cache()
         return t_batched
 
-
-
-
-
-
+    @tf.function
+    def _load_and_preprocess_image(self, image_path: str, label: int) -> tuple[str, int]:
+        raw = tf.io.read_file(image_path)
+        image = tf.image.decode_jpeg(raw, channels=self._channels)
+        image = tf.image.resize(image, self._size)
+        return image, label-1

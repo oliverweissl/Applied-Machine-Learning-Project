@@ -3,4 +3,4 @@ venv
 data
 **/__pycache__/*
 *.pickle
-*_classifier/
+classifiers/*
