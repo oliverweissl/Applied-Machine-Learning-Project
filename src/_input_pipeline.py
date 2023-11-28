@@ -87,6 +87,7 @@ class InputPipeline:
             color_mode='grayscale' if self._channels == 1 else "rgb",
             batch_size=self._batch_size,
             image_size=self._size,
+            shuffle=False,
             interpolation='lanczos3',
         )
         print("Datasets populated!")

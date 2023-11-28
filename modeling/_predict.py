@@ -36,14 +36,12 @@ def predict(
         scl = keras.models.load_model(species_classifier)
         s_predict = pd.DataFrame(scl.predict(dataset))
         final_labels = list(s_predict.idxmax(axis=1))
-        print(final_labels)
 
     if subspecies_classifier is not None:
         sscl = keras.models.load_model(subspecies_classifier)
         ss_predict = pd.DataFrame(sscl.predict(dataset))
         species_subspecies_dict = {k: v for k, v in enumerate(species_subspecies_dict.values())}
         final_labels = list(ss_predict.idxmax(axis=1))
-        print(final_labels)
 
     if subspecies_classifier is not None and species_classifier is not None:
         ss_predict.progress_apply(lambda row: _adjust_row(row, s_predict, species_subspecies_dict), axis=1)
