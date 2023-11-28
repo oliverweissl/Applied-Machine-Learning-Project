@@ -1,10 +1,7 @@
-import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow import keras
 from tensorflow.keras.regularizers import l2, l1
-
-
-
+import tensorflow as tf
 
 
 CONV_ARGS = {
@@ -22,7 +19,6 @@ def pretrained_mobilenet(input_shape: tuple[int, ...], num_classes: int) -> kera
     :param num_classes: The number of classes to be classified.
     :return: The model.
     """
-
     pretrained_model = tf.keras.applications.MobileNetV3Small(
         input_shape=input_shape,
         include_top=False,
@@ -36,7 +32,6 @@ def pretrained_mobilenet(input_shape: tuple[int, ...], num_classes: int) -> kera
     data_augmentation = keras.Sequential(
         [
             layers.experimental.preprocessing.Rescaling(1./255),
-            layers.experimental.preprocessing.RandomRotation(0.1),
         ]
     )
     x = data_augmentation(inputs)

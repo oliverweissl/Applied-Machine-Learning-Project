@@ -60,11 +60,19 @@ class InputPipeline:
         train_df = pd.read_csv(train_ds_path, index_col=False)
         val_df = pd.read_csv(val_ds_path, index_col=False)
 
-        train_ds = tf.data.Dataset.from_tensor_slices((train_df["image"].values, train_df["label"].values)).map(self._load_and_preprocess_image).batch(batch_size=self._batch_size)
-        val_ds = tf.data.Dataset.from_tensor_slices((val_df["image"].values, val_df["label"].values)).map(self._load_and_preprocess_image).batch(batch_size=self._batch_size)
+        train_ds = (tf.data.Dataset.from_tensor_slices((train_df["image"].values, train_df["label"].values))
+                    .shuffle(buffer_size=4000)  # Randomize order
+                    .map(self._load_and_preprocess_image)  # Make images from paths
+                    .batch(batch_size=self._batch_size))  # Batch the dataset
+
+        val_ds = (tf.data.Dataset.from_tensor_slices((val_df["image"].values, val_df["label"].values))
+                  .shuffle(buffer_size=4000)
+                  .map(self._load_and_preprocess_image)
+                  .batch(batch_size=self._batch_size))
 
         self.train_dataset = train_ds
         self.validation_dataset = val_ds
+        print("Datasets populated!")
 
     def make_test_dataset(self, directory: str) -> None:
         """
@@ -81,6 +89,7 @@ class InputPipeline:
             image_size=self._size,
             interpolation='lanczos3',
         )
+        print("Datasets populated!")
 
     def get_cached_train_datasets(self) -> tuple[tf.data.Dataset, ...]:
         """
@@ -104,7 +113,14 @@ class InputPipeline:
         return t_batched
 
     @tf.function
-    def _load_and_preprocess_image(self, image_path: str, label: int) -> tuple[str, int]:
+    def _load_and_preprocess_image(self, image_path: str, label: int) -> tuple[object, int]:
+        """
+        Load image from path and adjust label ranging from [1, 200] to be between [0, 199].
+
+        :param image_path: The path to the image.
+        :param label: The label.
+        :return: A tuple of image object and label.
+        """
         raw = tf.io.read_file(image_path)
         image = tf.image.decode_jpeg(raw, channels=self._channels)
         image = tf.image.resize(image, self._size)

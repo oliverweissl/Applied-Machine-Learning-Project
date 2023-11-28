@@ -47,9 +47,9 @@ def predict(
         ss_predict.progress_apply(lambda row: _adjust_row(row, s_predict, species_subspecies_dict), axis=1)
         final_labels = list(ss_predict.idxmax(axis=1))
 
-    test_df = pd.read_csv("data/test_images_sample.csv", index_col="id")
+    test_df = pd.read_csv("../data/test_images_sample.csv", index_col="id")
     test_df["label"] = final_labels
 
     name = time.time()
-    print(f"Saving to: data/test_images_sample_{name}.csv")
-    test_df.to_csv(f"data/test_images_sample_{name}.csv")
+    print(f"Saving to: ../data/test_images_sample_{name}.csv")
+    test_df.to_csv(f"../data/test_images_sample_{name}.csv")

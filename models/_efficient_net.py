@@ -3,6 +3,7 @@ from tensorflow.keras import layers
 from tensorflow import keras
 from tensorflow.keras.regularizers import l2, l1
 
+
 def efficient_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model:
     """
     Get a efficient net pretrained model adjusted for the task.
@@ -14,7 +15,7 @@ def efficient_net(input_shape: tuple[int, ...], num_classes: int) -> keras.Model
     inputs = keras.Input(shape=input_shape)
 
     base_model = tf.keras.applications.efficientnet_v2.EfficientNetV2B0(include_top=False, weights="imagenet", input_shape=input_shape, pooling='max')
-    # base_model.trainable = False
+    base_model.trainable = False
     model = keras.Sequential([
         base_model,
         layers.BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001),
