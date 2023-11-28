@@ -2,6 +2,7 @@ import solt
 import cv2
 from solt import transforms as slt
 from tqdm import tqdm
+import time
 
 
 def random_augmentation(files: list[str], p: float) -> None:
@@ -32,5 +33,5 @@ def random_augmentation(files: list[str], p: float) -> None:
     for path in tqdm(files):
         img = cv2.imread(path)
         aug_img = stream({"image": img}, return_torch=False).data[0].squeeze()
-        new_path = path.split(".")[0] + "_aug.jpg"
+        new_path = path.split(".jpg")[0] + f"_aug{str(time.time())}.jpg"
         cv2.imwrite(new_path, aug_img)
