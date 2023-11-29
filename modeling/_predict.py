@@ -3,13 +3,16 @@ from tensorflow import keras
 import tensorflow as tf
 import time
 from tqdm import tqdm
+import numpy as np
+from PIL import Image
+
 
 
 def __make_index(lst: list[int]) -> list[int]:
     return [x - 1 for x in lst]
 
 
-def _adjust_row(row, s_predict: pd.DataFrame,  mapping: dict[int, list[int]]):
+def _adjust_row(row, s_predict: pd.DataFrame, mapping: dict[int, list[int]]):
     for key, indices in mapping.items():
         indcs = __make_index(indices)
         row[indcs] += s_predict.loc[row.name, key]
@@ -53,3 +56,42 @@ def predict(
     name = time.time()
     print(f"Saving to: ../data/test_images_sample_{name}.csv")
     test_df.to_csv(f"../data/test_images_sample_{name}.csv")
+
+
+def predict_from_csv(
+        subspecies_classifier: str | None,
+        dataset: str,
+        path: str,
+        size: tuple[int, int, int],
+) -> None:
+    """
+    Predict labels for the data given.
+
+    :param subspecies_classifier: The trained classifier for classifying subspecies.
+    :param dataset: The dataset for prediction.
+    :param path: The path to the files.
+    :param size: The desired size of the images.
+    """
+    tqdm.pandas(desc="predicting")
+    cl = keras.models.load_model(subspecies_classifier)
+
+    df = pd.read_csv(dataset, index_col=0)
+    df = df.progress_apply(lambda row: __predict_row(row, size, cl, path), axis=1)
+
+    name = time.time()
+    print(f"Saving to: ../data/test_images_sample_{name}.csv")
+    df = df.drop(columns=["image_path"])
+    df.to_csv(f"../data/test_images_sample_{name}.csv")
+
+
+def __predict_row(row, size: tuple[int, int, int], predictor, path: str):
+    img = Image.open(path + row["image_path"]).resize(size[:-1], Image.Resampling.LANCZOS)
+    img = np.array(img)
+    img = np.expand_dims(img, axis=0)
+    prediction = None
+    try:
+        prediction = predictor.predict(img, verbose=0).argmax(axis=-1)[0] + 1
+    except:
+        pass
+    row["label"] = prediction
+    return row
