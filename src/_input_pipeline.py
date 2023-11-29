@@ -61,12 +61,12 @@ class InputPipeline:
         val_df = pd.read_csv(val_ds_path, index_col=False)
 
         train_ds = (tf.data.Dataset.from_tensor_slices((train_df["image"].values, train_df["label"].values))
-                    .shuffle(buffer_size=4000)  # Randomize order
+                    .shuffle(buffer_size=10000)  # Randomize order
                     .map(self._load_and_preprocess_image)  # Make images from paths
                     .batch(batch_size=self._batch_size))  # Batch the dataset
 
         val_ds = (tf.data.Dataset.from_tensor_slices((val_df["image"].values, val_df["label"].values))
-                  .shuffle(buffer_size=4000)
+                  .shuffle(buffer_size=10000)
                   .map(self._load_and_preprocess_image)
                   .batch(batch_size=self._batch_size))
 
@@ -99,8 +99,8 @@ class InputPipeline:
         :return: Train-DS, Val-DS, in batched mode.
         """
 
-        tr_batched = self.train_dataset.prefetch(tf.data.AUTOTUNE).cache()
-        val_batched = self.validation_dataset.prefetch(tf.data.AUTOTUNE).cache()
+        tr_batched = self.train_dataset.cache().prefetch(tf.data.AUTOTUNE)
+        val_batched = self.validation_dataset.cache().prefetch(tf.data.AUTOTUNE)
         return tr_batched, val_batched
 
     def get_cached_test_datasets(self) -> tf.data.Dataset:

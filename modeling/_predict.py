@@ -4,6 +4,7 @@ import tensorflow as tf
 import time
 from tqdm import tqdm
 import numpy as np
+import random
 from PIL import Image
 
 
@@ -80,7 +81,10 @@ def predict_from_csv(
 
     name = time.time()
     print(f"Saving to: ../data/test_images_sample_{name}.csv")
+
     df = df.drop(columns=["image_path"])
+    df = df.fillna(value=random.randint(1, 200))  # The current implementation is not very safe, so nan values that result from failed preidction should be replacesd.
+    df["label"] = df["label"].apply(int)  # The format requires int values, so we convert them here.
     df.to_csv(f"../data/test_images_sample_{name}.csv")
 
 
