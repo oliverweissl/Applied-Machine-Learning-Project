@@ -8,7 +8,6 @@ import random
 from PIL import Image
 
 
-
 def __make_index(lst: list[int]) -> list[int]:
     return [x - 1 for x in lst]
 
@@ -83,7 +82,6 @@ def predict_from_csv(
     print(f"Saving to: ../data/test_images_sample_{name}.csv")
 
     df = df.drop(columns=["image_path"])
-    df = df.fillna(value=random.randint(1, 200))  # The current implementation is not very safe, so nan values that result from failed preidction should be replacesd.
     df["label"] = df["label"].apply(int)  # The format requires int values, so we convert them here.
     df.to_csv(f"../data/test_images_sample_{name}.csv")
 
@@ -92,7 +90,7 @@ def __predict_row(row, size: tuple[int, int, int], predictor, path: str):
     img = Image.open(path + row["image_path"]).resize(size[:-1], Image.Resampling.LANCZOS)
     img = np.array(img)
     img = np.expand_dims(img, axis=0)
-    prediction = None
+    prediction = random.randint(1, 200)
     try:
         prediction = predictor.predict(img, verbose=0).argmax(axis=-1)[0] + 1
     except:
