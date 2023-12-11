@@ -16,7 +16,7 @@ def random_augmentation(files: list[str], p: float) -> None:
         slt.Rotate(angle_range=(-45, 45), p=p, padding='r'),
         slt.Flip(axis=1, p=p / 2),
         slt.Flip(axis=0, p=p / 2),
-        slt.Shear(range_x=0.3, range_y=0.8, p=p, padding='r'),
+        slt.Shear(range_x=0.7, range_y=0.9, p=p, padding='r'),
         slt.Scale(range_x=(0.8, 1.3), padding='r', range_y=(0.8, 1.3), same=False, p=p),
         slt.CvtColor('rgb2gs', keep_dim=True, p=p / 2),
         slt.HSV((0, 10), (0, 10), (0, 10)),
