@@ -75,6 +75,7 @@ def predict_from_csv(
     df = df.drop(columns=["image_path", "proba"])
     df = df.fillna(value=random.randint(1,
                                         200))  # The current implementation is not very safe, so nan values that result from failed preidction should be replacesd.
+
     df["label"] = df["label"].apply(int)  # The format requires int values, so we convert them here.
 
     df.to_csv(f"../data/test_images_sample_{name}.csv")
