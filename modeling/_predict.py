@@ -70,14 +70,14 @@ def predict_from_csv(
     df = df.progress_apply(lambda row: __predict_row(row, size, cl, path), axis=1)
 
     name = time.time()
-    print(f"Saving to: ./data/test_images_sample_{name}.csv")
+    print(f"Saving to: ../data/test_images_sample_{name}.csv")
 
-    df = df.drop(columns=["image_path"])
+    df = df.drop(columns=["image_path", "proba"])
     df = df.fillna(value=random.randint(1,
                                         200))  # The current implementation is not very safe, so nan values that result from failed preidction should be replacesd.
     df["label"] = df["label"].apply(int)  # The format requires int values, so we convert them here.
 
-    df.to_csv(f"./data/test_images_sample_{name}.csv")
+    df.to_csv(f"../data/test_images_sample_{name}.csv")
 
 
 def stacking_from_csv(
@@ -100,6 +100,7 @@ def stacking_from_csv(
     :param weights: Weights for the classifiers predictions.
     :param mapping: the mapping pickle for correct stacking.
     """
+    tqdm.pandas(desc="predicting")
     df1 = _prob_predict(primary_classifier, dataset, path, size)
     df2 = _prob_predict(secondary_classifier, dataset, path, size)
     result = _stack_predictions(df1, df2, mapping, *weights)
@@ -118,7 +119,7 @@ def _stack_predictions(
     """
     Stack the prediction dfs.
 
-    :param primary_df: The primary df.
+    :param primary_df: The primary df (smaller one).
     :param secondary_df: The secondary_df.
     :param mapping_path: The mapping path.
     :param primary_weight: The primary weight.
@@ -127,7 +128,7 @@ def _stack_predictions(
     """
     _expand_probs(primary_df, mapping_path)
     result = (primary_df["expanded_prob"] * primary_weight) + (secondary_df["proba"] * secondary_weight)
-    secondary_df["combined_class_pred"] = result.apply(lambda row: ((row[0]).argmax()) + 1)
+    secondary_df["combined_class_pred"] = result.apply(lambda row: row[0].argmax() + 1)
     return secondary_df
 
 
@@ -164,7 +165,7 @@ def _expand_probs(df: pd.DataFrame, mapping_path: str) -> None:
     :param mapping_path: the mapping path.
     """
     with open(mapping_path, "rb") as f:
-        mapping = pickle.load(f)
+        mapping = dict(sorted(pickle.load(f).items()))
     df["expanded_prob"] = df.apply(lambda row: __prob70_prob200(row, mapping), axis=1)
 
 
@@ -182,7 +183,6 @@ def __prob70_prob200(row, mapping: dir) -> NDArray:
         for secondary_idx in secondary_idxs:
             expanded_prob[secondary_idx - 1] += row["proba"][0][idx]
     return expanded_prob
-
 
 
 def __predict_row(row, size: tuple[int, int, int], predictor, path: str):
